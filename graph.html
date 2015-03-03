@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <meta charset="utf-8">
+
+  <head>
+
+    <style type="text/css">
+      text
+      {
+        font-family: Arial;
+        font-size: 10pt;        
+      }
+
+      circle
+      {
+        fill: none;
+        stroke: #000;        
+      }
+
+      #Test
+      {
+          position: absolute;
+          visibility: hidden;
+          height: auto;
+          width: auto;
+          white-space: nowrap;
+
+          font-family: Arial;
+          font-size: 10pt;
+      }
+    </style>
+
+    <script src="js/d3.v3.min.js"></script>
+
+    <script type="text/javascript" language="javascript" src="js/chart.js"></script>
+    <script type="text/javascript" language="javascript" src="js/lineChart.js"></script> 
+    <script type="text/javascript" language="javascript" src="js/sPlotChart.js"></script>
+    <script type="text/javascript" language="javascript" src="js/cLayoutChart.js"></script>      
+    <script type="text/javascript" language="javascript" src="js/fLayoutChart.js"></script>
+    <script type="text/javascript" language="javascript" src="js/miscFunctions.js"></script> 
+    <script type="text/javascript" language="javascript" src="js/visible.js"></script>     
+
+    <script>
+
+      var graph = {nodes: [], links: []}, continentNames, continentData;      
+      
+      var vizType = -1, textHeight = 10, textSpacing = 3, nTime = 0.25, tDuration = 500;
+        lineE = false, lineNonE = false, lineNonEParam = "population",
+        maxNameLength = 0, sPlotType = 1, fPlotType = 1,
+        cLayoutParam = "population";
+
+      var margin, height, width, miscHeight=20, svgType=1,
+        startY, endY, svg, gTexts, gCircles,
+        minX, maxX, minY, maxY, xScale, yScale, xParam, yParam,
+        radius, arc, pie,
+        fociValues, allNodes, allLinks, force;
+
+      function drawVisualization() {
+
+        if(vizType==1)
+        {
+          setLineParameters();
+          drawLineChart();        
+        }
+
+        else if(vizType==2)
+        {
+          setSPlotParameters();
+          drawSPlotChart();          
+        }
+
+        else if(vizType==3)
+        {
+          setCLayoutParameters();
+          drawCLayoutChart();
+        }
+
+        else if(vizType==4)
+        {
+          setFLayoutParameters();
+          drawFLayoutChart();
+        }
+
+      }
+
+      function deleteVisualization(newVizType) {
+
+        if(vizType==-1)
+          initSvg(newVizType);
+
+        else if(vizType==1)
+          deleteLineChart(newVizType);
+
+        else if(vizType==2)
+          deleteSPlotChart(newVizType);
+
+        else if(vizType==3)
+          deleteCLayoutChart(newVizType);
+
+        else if(vizType==4)
+          deleteFLayoutChart(newVizType);
+      
+      }
+
+      function updateVisualization(newVizType) {
+
+        if(force)
+          force.stop()
+
+        if(!updateSvg(newVizType))
+        {
+          vizType = newVizType;
+
+          if(vizType==1)
+          {
+            setLineParameters();            
+            updateLineChart();
+          }
+
+          else if(vizType==2)
+          {
+            setSPlotParameters();
+            updateSPlotChart();
+          }
+
+          else if(vizType==3)
+          {
+            setCLayoutParameters();
+            updateCLayoutChart();
+          }
+
+          else if(vizType==4)
+          {
+            setFLayoutParameters();
+            updateFLayoutChart();            
+          }          
+
+        }
+
+      }
+
+      //FLayout related functions
+          
+      function setFLayoutParameters() {
+
+        fociValues = []  
+        allNodes = []
+        allLinks = []
+
+        if(document.getElementById('vFLayoutId').checked)
+          fPlotType=1;
+        else if(document.getElementById('vFLayoutHId').checked) 
+          fPlotType=2;
+        else
+          fPlotType=3;
+
+        var fociXScale = d3.scale.ordinal().domain( d3.range(continentNames.length) )
+          .rangeRoundBands([margin.left+margin.right, width], 0.5)
+
+        console.log(fociXScale.range());
+        console.log(margin.left);
+        console.log(width);
+
+        if(fPlotType==3)
+          arcRelatedSetup(continentNames, 2, false, width, height);
+
+        for(index in continentNames)
+        {
+          if(fPlotType==1)
+            newFoci = Foci(width/2, height/2, continentNames[index].continent) 
+
+          else if(fPlotType==2)
+            newFoci = Foci(fociXScale(index), height/2, continentNames[index].continent) 
+
+          else if(fPlotType==3)
+            newFoci = Foci(continentNames[index].x, continentNames[index].y, continentNames[index].continent);            
+
+          fociValues.push( newFoci );
+        
+          newNodes = continentData[index]
+          allNodes = allNodes.concat( newNodes );
+
+          newLinks = Links(newNodes, newFoci);
+          allLinks = allLinks.concat(newLinks);
+        }
+      
+        allNodes = allNodes.concat(fociValues);
+
+        console.log(fPlotType);
+
+        console.log(fociValues);
+
+        console.log(allNodes);
+        console.log(allLinks);        
+
+        force = Force(allNodes, allLinks);
+
+        force.on('tick', function(){
+
+          updateChart();     
+        })        
+
+      }
+
+      function startFLayoutViz() {
+
+        setFLayoutVisibility();
+        updateVisualization(4);
+      }      
+
+      //CLayout related functions
+
+      function arcRelatedSetup(data, divFactor, shouldSort, centerX, centerY) {
+
+        radius = Math.min(height/divFactor, width/divFactor);
+
+        arc = d3.svg.arc()
+            .outerRadius(radius);
+
+        if(shouldSort)
+        {            
+          pie = d3.layout.pie()
+            .sort(function(a, b) { return d3.ascending(a[cLayoutParam], b[cLayoutParam]) } ) 
+            .value(function(d) { return 1 });
+        }
+        else
+        {
+          pie = d3.layout.pie()
+            .value(function(d) { return 1 });
+        }            
+
+        pie(data).map(function(d, i) {
+          
+          d.innerRadius = 0;
+          d.outerRadius = radius;
+          
+          d.data.x = arc.centroid(d)[0]+centerX/2;
+          d.data.y = arc.centroid(d)[1]+centerY/2;
+
+          return d.data;
+        })
+
+      }
+
+      function setCLayoutParameters() {
+
+        var dId = document.getElementById('vCLayoutPosSId');
+        cLayoutParam = dId.options[dId.selectedIndex].value;
+
+        if(document.getElementById('vCLayoutGId').checked)
+        {
+          arcRelatedSetup(continentNames, 0.65, false, width, height);
+
+          d3.range(continentNames.length).map(function(index){
+            arcRelatedSetup(continentData[index],3.5,true,continentNames[index].x+width/2,continentNames[index].y+height/2-miscHeight);
+          })
+        }
+        else          
+          arcRelatedSetup(graph.nodes, 1, true, width, height);
+
+      }
+
+      function startCLayoutViz() {
+
+        setCLayoutVisibility();                  
+        updateVisualization(3);
+      }      
+
+      //SPlot related functions
+
+      function setSPlotParameters() {
+
+        if(document.getElementById('vSPlotId').checked)
+          sPlotType=1;
+        else
+          sPlotType=2;
+
+        if(sPlotType==1)
+        {
+          xParam = 'gdp'
+          minX = d3.min(graph.nodes, function(d) { return d[xParam] } )
+          maxX = d3.max(graph.nodes, function(d) { return d[xParam] } )
+
+          yParam = 'population'
+          minY = d3.min(graph.nodes, function(d) { return d[yParam] } )
+          maxY = d3.max(graph.nodes, function(d) { return d[yParam] } )
+        }
+        else
+        {
+          xParam = 'longitude'
+          minX = d3.min(graph.nodes, function(d) { return d[xParam] } )
+          maxX = d3.max(graph.nodes, function(d) { return d[xParam] } )
+
+          yParam = 'latitude'
+          minY = d3.min(graph.nodes, function(d) { return d[yParam] } )
+          maxY = d3.max(graph.nodes, function(d) { return d[yParam] } )          
+        }
+
+        xScale = d3.scale.linear().range([0, width]);
+        xScale.domain([minX, maxX]);        
+
+        yScale = d3.scale.linear().range([0, height]);
+        yScale.domain([maxY, minY]);
+
+      }
+
+      function startSPlotViz() {
+
+        setSPlotVisibility();                  
+        updateVisualization(2);
+      }       
+
+      //Line related functions
+
+      function setLineParameters() {
+
+        if(document.getElementById('vLinePosId').checked)
+        {
+          lineE = true;
+          lineNonE = false;
+        }
+        else
+        {
+          lineE = false;
+          lineNonE = true;
+
+          var dId = document.getElementById('vLinePosSId');
+          lineNonEParam = dId.options[dId.selectedIndex].value;         
+        }
+
+        graph.nodes = graph.nodes.sort( function(a, b) {
+          return d3.descending(a[lineNonEParam], b[lineNonEParam]);
+        });
+
+        minY = d3.min(graph.nodes, function(d) { return d[lineNonEParam] } );
+        maxY = d3.max(graph.nodes, function(d) { return d[lineNonEParam] } );
+
+        yScale = d3.scale.linear().range([0, height]);
+        yScale.domain([maxY, minY]);          
+      
+      }
+
+      function startLineViz() {
+
+        setLineVisibility();        
+        updateVisualization(1);
+      }      
+
+      function startLineVizE() {
+
+        document.getElementById('vLinePosSId').disabled=true;
+        startLineViz();
+      }
+
+      function startLineVizNonE() {
+
+        document.getElementById('vLinePosSId').disabled=false;
+        startLineViz();
+      }        
+
+      //Initialization functions
+
+      function updateSvg(newVizType) {
+
+        if(vizType!=newVizType || vizType==-1)
+        {
+
+          if(vizType==1)
+          {
+            initOtherSvg(newVizType);
+            return true;
+          }
+          else if(newVizType==1)
+          {
+            initLineSvg(newVizType);
+            return true;
+          }
+
+        }
+
+        return false;
+
+      }
+
+      function initSvg(newVizType) {
+
+        console.log("Into svg");
+
+        if(svgType==1)
+        {
+          margin = {top: 20, bottom: 0, left:0, right: 0};        
+
+          height = graph.nodes.length*textHeight+(graph.nodes.length+1)*textSpacing;
+          width = getDocWidth()-margin.left-margin.right-25;
+        }
+        else
+        {
+          margin = {top: 20, bottom: textHeight, left:textHeight*3/2, right: maxNameLength};        
+
+          height = getDocHeight()-document.getElementById('vizOptionsId').clientHeight-margin.top-margin.bottom-miscHeight;
+          width = getDocWidth()-margin.left-margin.right-25;          
+        }
+
+        startY = 0-margin.top-textHeight-textSpacing;
+        endY = height+margin.bottom+margin.top+textHeight+textSpacing;
+
+        deleteElements();
+
+        svg = d3.select("#svgArea")
+          .append("svg")
+          .attr("width", width+margin.left+margin.right)
+          .attr("height", height+margin.top+margin.bottom);
+
+        gTexts = svg.append("g")
+          .attr("transform", "translate("+margin.left+","+margin.top+")");   
+
+        gCircles = svg.append("g")
+          .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+        vizType = newVizType;
+        drawVisualization();
+      }
+
+      function initLineSvg(newVizType) {
+
+        console.log("Into Line Svg");
+
+        svgType=1;
+        deleteVisualization(newVizType);
+      }
+
+      function initOtherSvg(newVizType) {
+
+        console.log("Into Other Svg");        
+
+        svgType=2;        
+        deleteVisualization(newVizType);
+      }
+
+      window.onload = function initialize() {
+
+        document.getElementById('vTypeId').checked=true;
+        document.getElementById('vLinePosId').checked=true;
+        document.getElementById('vLinePosSId').disabled=true;
+        document.getElementById('vLinePosSPopId').selected=true;
+
+        document.getElementById('vSPlotId').checked=true;
+        document.getElementById('vClayoutPosSPopId').selected=true;
+        document.getElementById('vFLayoutId').checked=true;
+
+        document.getElementById('vCLayoutGId').checked=false;
+
+        maxNameLength = d3.max(graph.nodes, function(d) { return getStrWidth(d.name); } );
+
+        console.log("MaxNameLength is "+maxNameLength);
+
+        startLineViz();
+      }
+
+      function groupBy( array , f )
+      {
+        var groups = {};
+
+        array.forEach( function( o )
+        {
+          var group = JSON.stringify( f(o) );
+          groups[group] = groups[group] || [];
+          groups[group].push( o );  
+        });
+
+        return Object.keys(groups).map( function( group )
+        {
+          return groups[group]; 
+        })
+        
+      }       
+              
+      function jsonCallback(data)
+      {
+
+        graph.nodes = data.map(function(d) {
+          d.x=0;
+          d.y=0;
+          d.charge=-30;
+
+          return d;
+        })   
+
+        continentData = groupBy(graph.nodes, function(item){
+          return item.continent;
+        });
+
+        continentNames=[]
+
+        for(index in continentData)
+          continentNames.push({'continent':continentData[index][0].continent})
+
+      }
+
+    </script>   
+
+    <script type="text/javascript" language="javascript" src="data/countries_2012.js"></script>
+
+  </head>
+
+  <body>
+
+    <div id="Test"></div>
+
+    <div id="vizOptionsId" align="left">  
+
+      <span>Visualization Type:<br/>
+
+        <span>
+          <label><input id="vTypeId" type="radio" name="vType" value="line" onclick="startLineViz()"/>Line</label>  
+          <label><input type="radio" name="vType" value="scatterPlot" onclick="startSPlotViz()"/>Scatter Plot</label>  
+          <label><input type="radio" name="vType" value="cLayout" onclick="startCLayoutViz()"/>Circular Layout</label>          
+          <label><input type="radio" name="vType" value="gLayout" onclick="startFLayoutViz()"/>Grouped Layout</label>  
+          <label><input type="radio" name="vType" value="cCLayout" onclick="startCCLayoutViz()"/>Circular Layout With Connections</label>
+        </span>
+
+      </span>     
+
+      <div id="vLineDiv">
+
+        <span>Position nodes:
+
+          <label><input id="vLinePosId" type="radio" name="vLinePos" value="eDistant" onclick="startLineVizE()"/>Equidistantly</label>  
+          <label><input type="radio" name="vLinePos" value="nonEDistant" onclick="startLineVizNonE()"/>Based On </label>  
+
+          <select id="vLinePosSId"> 
+            <option id="vLinePosSPopId" value="population" onclick="startLineVizNonE()"/ selected>Population</option> 
+            <option value="gdp" onclick="startLineVizNonE()"/>GDP</option>            
+          </select> 
+
+        </span>        
+
+      </div>
+
+      <div id="vSPlotDiv"> 
+
+        <span>
+
+          <label>
+            <input id="vSPlotId" type="radio" name="vSPlot" value="popGDP" onclick="startSPlotViz()" checked/>Population vs GDP
+          </label>            
+          <label><input type="radio" name="vSPlot" value="longLat" onclick="startSPlotViz()"/>Longitude vs Latitude</label>  
+
+        </span> 
+
+      </div>
+
+      <div id="vCLayoutDiv">
+
+        <span>Sort by:
+
+          <select id="vCLayoutPosSId"> 
+            <option id="vClayoutPosSPopId" value="population" onclick="startCLayoutViz()"/ selected>Population</option> 
+            <option value="gdp" onclick="startCLayoutViz()"/>GDP</option>            
+          </select>
+
+          <input id="vCLayoutGId" type="checkbox" name="vCLayout" value="gContinent" onclick="startCLayoutViz()"/>Group by Continent
+
+        </span>  
+
+      </div>
+
+      <div id="vGLayoutDiv">
+
+        <span>
+          <label><input id="vFLayoutId" type="radio" name="fType" value="normal" onclick="startFLayoutViz()"/>Force Layout 1</label>   
+          <label><input id="vFLayoutHId" type="radio" name="fType" value="horizontal" onclick="startFLayoutViz()"/>Force Layout 2</label>
+          <label><input type="radio" name="fType" value="circular" onclick="startFLayoutViz()"/>Force Layout 3</label>  
+        </span>
+
+      </div>
+
+      <div id="vCCLayoutDiv">
+      </div>                  
+
+    </div>    
+
+    <div id="svgArea"></div>
+
+  </body>
+
+</html>
