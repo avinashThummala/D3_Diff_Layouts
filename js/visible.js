@@ -7,7 +7,6 @@ function setFLayoutVisibility() {
   document.getElementById('vCLayoutDiv').style.display="none";
   document.getElementById('vLineDiv').style.display = 'none';
   document.getElementById('vSPlotDiv').style.display="none";      
-  document.getElementById('vCCLayoutDiv').style.display="none";
 }      
 
 function setCLayoutVisibility() {
@@ -17,7 +16,6 @@ function setCLayoutVisibility() {
   document.getElementById('vLineDiv').style.display = 'none';
   document.getElementById('vSPlotDiv').style.display="none";      
   document.getElementById('vGLayoutDiv').style.display="none";
-  document.getElementById('vCCLayoutDiv').style.display="none";
 }      
 
 function setSPlotVisibility() {
@@ -27,8 +25,6 @@ function setSPlotVisibility() {
   document.getElementById('vLineDiv').style.display="none";
   document.getElementById('vCLayoutDiv').style.display="none";
   document.getElementById('vGLayoutDiv').style.display="none";
-  document.getElementById('vCCLayoutDiv').style.display="none";
-
 }
 
 function setLineVisibility() {
@@ -38,5 +34,4 @@ function setLineVisibility() {
   document.getElementById('vSPlotDiv').style.display="none";
   document.getElementById('vCLayoutDiv').style.display="none";
   document.getElementById('vGLayoutDiv').style.display="none";
-  document.getElementById('vCCLayoutDiv').style.display="none";
 }

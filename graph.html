@@ -43,9 +43,11 @@
 
     <script>
 
-      var graph = {nodes: [], links: []}, continentNames, continentData;      
+      var graph = {nodes: []}, continentNames, continentData, linkedGraph = {nodes: [], links: []};
+
+      var linkedGraphDict={}, countryDescDict={};      
       
-      var vizType = -1, textHeight = 10, textSpacing = 3, nTime = 0.25, tDuration = 500;
+      var vizType = -1, textHeight = 10, textSpacing = 3, nTime = 0.25, tDuration = 500,
         lineE = false, lineNonE = false, lineNonEParam = "population",
         maxNameLength = 0, sPlotType = 1, fPlotType = 1,
         cLayoutParam = "population";
@@ -54,7 +56,7 @@
         startY, endY, svg, gTexts, gCircles,
         minX, maxX, minY, maxY, xScale, yScale, xParam, yParam,
         radius, arc, pie,
-        fociValues, allNodes, allLinks, force;
+        fociValues, fociLinks, force;
 
       function drawVisualization() {
 
@@ -144,9 +146,10 @@
           
       function setFLayoutParameters() {
 
-        fociValues = []  
-        allNodes = []
-        allLinks = []
+        var allNodes = [];
+
+        fociValues = []          
+        fociLinks = []
 
         if(document.getElementById('vFLayoutId').checked)
           fPlotType=1;
@@ -157,10 +160,6 @@
 
         var fociXScale = d3.scale.ordinal().domain( d3.range(continentNames.length) )
           .rangeRoundBands([margin.left+margin.right, width], 0.5)
-
-        console.log(fociXScale.range());
-        console.log(margin.left);
-        console.log(width);
 
         if(fPlotType==3)
           arcRelatedSetup(continentNames, 2, false, width, height);
@@ -182,19 +181,12 @@
           allNodes = allNodes.concat( newNodes );
 
           newLinks = Links(newNodes, newFoci);
-          allLinks = allLinks.concat(newLinks);
+          fociLinks = fociLinks.concat(newLinks);
         }
       
         allNodes = allNodes.concat(fociValues);
 
-        console.log(fPlotType);
-
-        console.log(fociValues);
-
-        console.log(allNodes);
-        console.log(allLinks);        
-
-        force = Force(allNodes, allLinks);
+        force = Force(allNodes, fociLinks);
 
         force.on('tick', function(){
 
@@ -453,8 +445,6 @@
 
         maxNameLength = d3.max(graph.nodes, function(d) { return getStrWidth(d.name); } );
 
-        console.log("MaxNameLength is "+maxNameLength);
-
         startLineViz();
       }
 
@@ -496,11 +486,50 @@
         for(index in continentData)
           continentNames.push({'continent':continentData[index][0].continent})
 
+        console.log("Nodes:");
+        console.log(graph.nodes);
+      }
+
+      function jsonCallbackWY(data)
+      {
+
+        linkedGraph.nodes = data.map(function(d){
+
+          //Lets try to tackle the year 2012
+          d.x=0;
+          d.y=0;
+          d.charge = -30;
+
+          d.gdp = d.years[17].gdp;
+          d.life_expectancy = d.years[17].life_expectancy;
+          d.population = d.years[17].population;
+          d.year = 2012;
+
+          d.top_partners = d.years[17].top_partners;
+
+          linkedGraphDict[d.country_id] = d;
+
+          return d;
+
+        })
+
+        linkedGraph.nodes.map(function(d){
+
+          for(var i=0; i<d.top_partners.length; i++)
+            linkedGraph.links.push( { source:d, target:linkedGraphDict[d.top_partners[i].country_id] } );
+
+        })
+
+        console.log("Nodes and Links:");
+        console.log(linkedGraph.nodes);        
+        console.log(linkedGraph.links);        
+
       }
 
     </script>   
 
     <script type="text/javascript" language="javascript" src="data/countries_2012.js"></script>
+    <script type="text/javascript" language="javascript" src="data/countries_1995_2012.js"></script>
 
   </head>
 
@@ -574,10 +603,7 @@
           <label><input type="radio" name="fType" value="circular" onclick="startFLayoutViz()"/>Force Layout 3</label>  
         </span>
 
-      </div>
-
-      <div id="vCCLayoutDiv">
-      </div>                  
+      </div>              
 
     </div>    
 
