@@ -5,31 +5,7 @@
 
   <head>
 
-    <style type="text/css">
-      text
-      {
-        font-family: Arial;
-        font-size: 10pt;        
-      }
-
-      circle
-      {
-        fill: none;
-        stroke: #000;        
-      }
-
-      #Test
-      {
-        position: absolute;
-        visibility: hidden;
-        height: auto;
-        width: auto;
-        white-space: nowrap;
-
-        font-family: Arial;
-        font-size: 10pt;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 
     <script src="js/d3.v3.min.js"></script>
 
@@ -46,7 +22,7 @@
 
       var graph = {nodes: []}, continentNames, continentData, linkedGraph = {nodes: [], links: []};
 
-      var linkedGraphDict={}, countryDescDict={};      
+      var linkedGraphObjectDict={}, linkedGraphIntDict={};
       
       var vizType = -1, textHeight = 10, textSpacing = 3, nTime = 0.25, tDuration = 500,
         lineE = false, lineNonE = false, lineNonEParam = "population",
@@ -54,7 +30,7 @@
         cLayoutParam = "population";
 
       var margin, height, width, miscHeight=20, svgType=1,
-        startY, endY, svg, gTexts, gCircles,
+        startY, endY, svg, gTexts, gCircles, gLines,
         minX, maxX, minY, maxY, xScale, yScale, xParam, yParam,
         radius, arc, pie,
         fociValues, fociLinks, force;
@@ -163,6 +139,7 @@
 
       function startCCLayoutViz() {
         
+        setCCLayoutVisibility();
         updateVisualization(5);
       }
 
@@ -327,7 +304,7 @@
         updateVisualization(2);
       }       
 
-      //Line related functions
+      //Line Chart related functions
 
       function setLineParameters() {
 
@@ -434,6 +411,12 @@
         gCircles = svg.append("g")
           .attr("transform", "translate("+margin.left+","+margin.top+")");
 
+        if(newVizType==5)
+        {
+          gLines = svg.append("g")
+            .attr("transform", "translate("+margin.left+","+margin.top+")");
+        }
+
         vizType = newVizType;
         drawVisualization();
       }
@@ -510,9 +493,6 @@
 
         for(index in continentData)
           continentNames.push({'continent':continentData[index][0].continent})
-
-        console.log("Nodes:");
-        console.log(graph.nodes);
       }
 
       function jsonCallbackWY(data)
@@ -532,7 +512,8 @@
 
           d.top_partners = d.years[17].top_partners;
 
-          linkedGraphDict[d.country_id] = d;
+          linkedGraphObjectDict[d.country_id] = d;
+          linkedGraphIntDict[d.country_id] = []
 
           return d;
 
@@ -541,13 +522,12 @@
         linkedGraph.nodes.map(function(d){
 
           for(var i=0; i<d.top_partners.length; i++)
-            linkedGraph.links.push( { source:d, target:linkedGraphDict[d.top_partners[i].country_id] } );
+          {
+            linkedGraphIntDict[d.country_id].push(d.top_partners[i].country_id);
+            linkedGraph.links.push( { source:d, target:linkedGraphObjectDict[d.top_partners[i].country_id] } );
+          }
 
-        })
-
-        console.log("Nodes and Links:");
-        console.log(linkedGraph.nodes);        
-        console.log(linkedGraph.links);        
+        })     
 
       }
 

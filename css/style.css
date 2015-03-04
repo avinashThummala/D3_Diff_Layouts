@@ -1,0 +1,66 @@
+.sourceCircle
+{
+  fill: black;
+  stroke: #000;
+}      
+
+.targetCircle
+{
+  fill: none;
+  stroke: #000;
+}
+
+.otherCircle
+{
+  fill: none;
+  stroke: #000;
+  opacity: 0.15;
+}
+
+.fullOLine
+{
+  stroke: #000;
+}
+
+.halfOLine
+{
+  stroke: #000;
+  opacity: 0.15;
+}      
+
+.fullOText
+{
+  font-family: Arial;
+  font-size: 10pt;   
+}
+
+.halfOText
+{
+  font-family: Arial;
+  font-size: 10pt;
+  opacity: 0.15;
+}
+
+text
+{
+  font-family: Arial;
+  font-size: 10pt;        
+}                  
+
+circle
+{
+  fill: none;
+  stroke: #000;
+}
+
+#Test
+{
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+  width: auto;
+  white-space: nowrap;
+
+  font-family: Arial;
+  font-size: 10pt;
+}

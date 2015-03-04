@@ -1,5 +1,13 @@
 //Visibility related functions
 
+function setCCLayoutVisibility() {
+
+  document.getElementById('vLineDiv').style.display = 'none';
+  document.getElementById('vSPlotDiv').style.display="none";
+  document.getElementById('vCLayoutDiv').style.display="none";  
+  document.getElementById('vGLayoutDiv').style.display="none";
+} 
+
 function setFLayoutVisibility() {
 
   document.getElementById('vGLayoutDiv').style.display="block";
