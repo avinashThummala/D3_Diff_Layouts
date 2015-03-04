@@ -64,3 +64,19 @@ circle
   font-family: Arial;
   font-size: 10pt;
 }
+
+.middle 
+{
+  vertical-align: middle;
+}   
+
+.axis path,.axis line 
+{
+    fill: none;
+    stroke: none;
+}
+
+.axis text 
+{
+    font-family: sans-serif;
+}

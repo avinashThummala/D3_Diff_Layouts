@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <meta charset="utf-8">
+
+  <head>
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <script src="js/d3.v3.min.js"></script>
+    <script type="text/javascript" language="javascript" src="js/miscFunctions.js"></script>
+
+    <script>
+
+      var completeData, vizData, dataDict={}, nameDict={}, fullCNameList=[], fullCIdList=[], pYear,
+        selectedIds=[], selectedNames=[];
+
+      var minYear=2016, maxYear=1800, maxNameLength=0, minValColor='blue', maxValColor='red', bChartColor='white';
+      var tIndex, tValue, tMinVal=Infinity, tMaxVal=0, tSName, tTName;
+
+      var rDimension=10, padding=1, aTextFont=10,
+        aTextsvgWidth, svgHeight, margin = {top: 20, bottom: 10, left: 5, right: 25}, gRects, xScale, yScale;
+
+      function updateSvg() {
+
+        gRects.append("rect")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("fill", bChartColor)
+          .attr("x", 0)
+          .attr("y", 0);
+
+        console.log(vizData);
+
+        selectedIds.map(function(sourceCId){
+
+          vizData.targetDict[sourceCId].map(function(targetCId){
+
+            tSName = nameDict[sourceCId];
+            tTName = nameDict[targetCId];
+
+            tValue = vizData.valueDict[sourceCId][targetCId];
+
+            gRects.append("rect")
+              .attr("width", rDimension)
+              .attr("height", rDimension)
+              .attr("fill", vizData.colorScaleDict[sourceCId](tValue) )
+              .attr("x", xScale(tTName)-rDimension)
+              .attr("y", yScale(tSName)-rDimension/2);
+
+          })
+
+        })         
+
+      }
+
+      function redrawChart() {
+
+        deleteElements();
+
+        updateData();
+
+        width = rDimension*fullCNameList.length+(fullCNameList.length+1)*padding;
+        height = rDimension*selectedNames.length+(selectedNames.length+1)*padding;
+
+        xScale = d3.scale.ordinal().domain(fullCNameList).rangePoints([0, width], padding);
+        yScale = d3.scale.ordinal().domain(selectedNames).rangePoints([0, height], padding);
+
+        var xAxis = d3.svg.axis().scale(xScale).orient("top");
+        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+        var svg = d3.select("#svgArea")
+          .append("svg")
+          .attr("width", width+margin.left+margin.right)
+          .attr("height", height+margin.top+margin.bottom);
+
+        gRects = svg.append("g")
+          .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+        gRects.append("g")
+          .attr("class", "x axis")  
+          .call(xAxis)
+          .selectAll("text")  
+          .style("font-size", aTextFont+'pt')
+          .style("text-anchor", "start")
+          .attr("transform", "rotate(-90)translate(5,"+aTextFont+")" );
+
+        gRects.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+          .selectAll("text")  
+          .style("font-size", aTextFont+'pt');
+
+        updateSvg();          
+
+      }
+
+      function updateChart() {
+
+        updateYear();
+        updateSvg();
+      }
+
+      function updateYear() {
+
+        pYear = document.getElementById("tSlider").value;
+        vizData = dataDict[pYear];
+      }
+
+      function updateData() {
+
+        var select = document.getElementById('mList'), options = select.getElementsByTagName('option');
+
+        selectedIds=[];
+        selectedNames=[];
+
+        for (var i=options.length; i--;) 
+        {
+            if (options[i].selected)
+            { 
+              selectedIds.unshift(options[i].value);
+              selectedNames.unshift(nameDict[options[i].value]);
+            }
+
+        }
+
+        calculateRDimension();
+
+        updateYear();
+      }
+
+      function calculateRDimension() {
+
+        rDimension = d3.min([(getDocWidth()-margin.left-margin.right-(fullCNameList.length+1)*padding)/fullCNameList.length, 10]);
+        aTextFont = d3.min([rDimension-0.5, 10]);
+      }
+
+      window.onload = function initialize() {
+
+        manipulateData(completeData);
+
+        margin.left=maxNameLength;
+        margin.top=maxNameLength;        
+
+        modifyLabels();
+        fillList();        
+
+        redrawChart();
+      }
+
+      function manipulateData(data) {
+
+        data.map(function(d){
+
+          nameDict[d.country_id]=d.name;
+
+          tValue = getStrWidth(d.name);
+
+          if(tValue>maxNameLength)
+            maxNameLength=tValue;
+
+          fullCIdList.push(d.country_id);
+          selectedIds.push(d.country_id);
+
+          fullCNameList.push(d.name);
+          selectedNames.push(d.name);
+
+          d.years.map(function(dYear){
+
+            if( !dataDict.hasOwnProperty(dYear.year) )
+              dataDict[dYear.year]={ 'valueDict':{}, 'minMaxDict':{}, 'targetDict':{}, 'colorScaleDict':{} }
+
+            tMinVal=Infinity;
+            tMaxVal=0;
+
+            dataDict[dYear.year].valueDict[d.country_id]={}
+            dataDict[dYear.year].targetDict[d.country_id]=[]
+
+            for(tIndex in dYear.top_partners)
+            {
+              tValue = dYear.top_partners[tIndex].total_export;
+              
+              if(tValue<tMinVal)
+                tMinVal=tValue;
+
+              if(tValue>tMaxVal)
+                tMaxVal=tValue;
+
+              dataDict[dYear.year].targetDict[d.country_id].push(dYear.top_partners[tIndex].country_id);
+              dataDict[dYear.year].valueDict[d.country_id][dYear.top_partners[tIndex].country_id]=tValue;
+            }
+
+            dataDict[dYear.year].minMaxDict[d.country_id]={'min':tMinVal, 'max':tMaxVal}
+
+            dataDict[dYear.year].colorScaleDict[d.country_id]=d3.scale.linear()
+              .domain([tMinVal, tMaxVal]).range([minValColor, maxValColor]);
+
+          })
+
+        })        
+
+      }
+      
+      function jsonCallbackWY(data) {
+
+        calculateMinMaxYears(data[0]);
+        completeData = data;
+      }      
+
+    </script>   
+
+    <script type="text/javascript" language="javascript" src="data/countries_1995_2012.js"></script>
+
+  </head>
+
+  <body>
+
+    <div id="Test"></div>
+
+    <div id="vizOptionsId" align="center">  
+
+      <span>
+
+        <label class="middle">Select Countries:</label>
+        <select id="mList" multiple onchange="redrawChart()" class="middle"></select> 
+        Time update:<label id="minLabel"></label>
+        <input id="tSlider" type="range" name="points" min="" max="" step="1" value="0" onclick="updateChart()" class="middle"> 
+        <label id="maxLabel"></label>       
+
+      </span>
+
+    </div>    
+
+    <div id="svgArea"></div>  
+
+  </body>
+
+</html>
