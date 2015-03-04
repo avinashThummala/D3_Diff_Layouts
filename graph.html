@@ -20,26 +20,27 @@
 
       #Test
       {
-          position: absolute;
-          visibility: hidden;
-          height: auto;
-          width: auto;
-          white-space: nowrap;
+        position: absolute;
+        visibility: hidden;
+        height: auto;
+        width: auto;
+        white-space: nowrap;
 
-          font-family: Arial;
-          font-size: 10pt;
+        font-family: Arial;
+        font-size: 10pt;
       }
     </style>
 
     <script src="js/d3.v3.min.js"></script>
 
+    <script type="text/javascript" language="javascript" src="js/miscFunctions.js"></script>
+    <script type="text/javascript" language="javascript" src="js/visible.js"></script>
     <script type="text/javascript" language="javascript" src="js/chart.js"></script>
-    <script type="text/javascript" language="javascript" src="js/lineChart.js"></script> 
+    <script type="text/javascript" language="javascript" src="js/lineChart.js"></script>
     <script type="text/javascript" language="javascript" src="js/sPlotChart.js"></script>
-    <script type="text/javascript" language="javascript" src="js/cLayoutChart.js"></script>      
+    <script type="text/javascript" language="javascript" src="js/cLayoutChart.js"></script>
     <script type="text/javascript" language="javascript" src="js/fLayoutChart.js"></script>
-    <script type="text/javascript" language="javascript" src="js/miscFunctions.js"></script> 
-    <script type="text/javascript" language="javascript" src="js/visible.js"></script>     
+    <script type="text/javascript" language="javascript" src="js/cCLayoutChart.js"></script>
 
     <script>
 
@@ -84,6 +85,12 @@
           drawFLayoutChart();
         }
 
+        else if(vizType==5)
+        {
+          setCCLayoutParameters();
+          drawCCLayoutChart();
+        }
+
       }
 
       function deleteVisualization(newVizType) {
@@ -102,7 +109,9 @@
 
         else if(vizType==4)
           deleteFLayoutChart(newVizType);
-      
+
+        else if(vizType==5)
+          deleteCCLayoutChart(newVizType);      
       }
 
       function updateVisualization(newVizType) {
@@ -136,10 +145,25 @@
           {
             setFLayoutParameters();
             updateFLayoutChart();            
-          }          
+          }                     
 
         }
 
+      }
+
+      //CLayout with connections
+
+      function setCCLayoutParameters() {
+
+        var dId = document.getElementById('vCLayoutPosSId');
+        cLayoutParam = dId.options[dId.selectedIndex].value;
+
+        arcRelatedSetup(linkedGraph.nodes, 1, true, width, height);
+      }
+
+      function startCCLayoutViz() {
+        
+        updateVisualization(5);
       }
 
       //FLayout related functions
@@ -193,7 +217,7 @@
           updateChart();     
         })        
 
-      }
+      }      
 
       function startFLayoutViz() {
 
@@ -358,7 +382,7 @@
         if(vizType!=newVizType || vizType==-1)
         {
 
-          if(vizType==1)
+          if(vizType==1 || vizType==5 || newVizType==5)
           {
             initOtherSvg(newVizType);
             return true;
@@ -388,7 +412,7 @@
         }
         else
         {
-          margin = {top: 20, bottom: textHeight, left:textHeight*3/2, right: maxNameLength};        
+          margin = {top: 20, bottom: textHeight, left: textHeight*3/2, right: maxNameLength};        
 
           height = getDocHeight()-document.getElementById('vizOptionsId').clientHeight-margin.top-margin.bottom-miscHeight;
           width = getDocWidth()-margin.left-margin.right-25;          
@@ -470,6 +494,7 @@
       {
 
         graph.nodes = data.map(function(d) {
+
           d.x=0;
           d.y=0;
           d.charge=-30;
@@ -503,7 +528,7 @@
           d.gdp = d.years[17].gdp;
           d.life_expectancy = d.years[17].life_expectancy;
           d.population = d.years[17].population;
-          d.year = 2012;
+          d.year = d.years[17].year;
 
           d.top_partners = d.years[17].top_partners;
 
