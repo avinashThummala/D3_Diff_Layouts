@@ -10,8 +10,6 @@ yCLayoutTransitionFunction = function(d,i) {
 
 function deleteCLayoutChart(newVizType) {
 
-  console.log("Into Delete CLayout Chart");        
-
   d3.selectAll("text")
     .transition()
     .duration(tDuration)
@@ -30,8 +28,6 @@ function deleteCLayoutChart(newVizType) {
 
 function updateCLayoutChart() {
 
-  console.log("Into Update CLayout Chart");
-
   gTexts.selectAll("text")
     .transition()
     .duration(tDuration)
@@ -44,13 +40,9 @@ function updateCLayoutChart() {
     .duration(tDuration)
     .attr("cx", function(d) { return d.x })    
     .attr("cy", function(d) { return (d.y-textHeight/2) });
-
-  console.log(graph.nodes);    
 }
 
 function drawCLayoutChart() {
-
-  console.log("Into Draw CLayout Chart");                        
 
   gTexts
     .selectAll("text")
@@ -75,7 +67,4 @@ function drawCLayoutChart() {
     .transition()
     .duration(tDuration)
     .attr("cy", function(d) { return (d.y-textHeight/2) });
-
-  console.log(graph.nodes);    
-
 }

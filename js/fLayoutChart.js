@@ -24,22 +24,16 @@ Foci = function(x, y, name) {
 } 
 
 function deleteFLayoutChart(newVizType) {
-
-  console.log("Into Delete FLayout Chart"); 
   deleteSPlotChart(newVizType);
 }
 
 function updateFLayoutChart() {
-
-  console.log("Into Update FLayout Chart");
 
   updateChart();
   force.start();  
 }
 
 function drawFLayoutChart() {
-
-  console.log("Into Draw FLayout Chart");                        
 
   drawChartWithoutTransition();
   force.start()

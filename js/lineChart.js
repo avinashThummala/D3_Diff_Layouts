@@ -24,8 +24,6 @@ yLineTransitionFunction = function(d,i) {
 
 function deleteLineChart(newVizType) {
 
-  console.log("Into Delete Line Chart");          
-
   d3.selectAll("text")
     .transition()
     .delay(function (d, i) { 
@@ -82,20 +80,12 @@ function deleteLineChart(newVizType) {
 
 function updateLineChart() {
 
-  console.log("Into Update Line Chart");
-
   modifyLineNodeValues();
   updateChart();    
-
-  console.log(graph.nodes);
 }
 
 function drawLineChart() {
 
-  console.log("Into Draw Line Chart");
-
   modifyLineNodeValues();
-  drawChartWithTransitionDelay(yLineTransitionFunction)
-
-  console.log(graph.nodes);
+  drawChartWithTransitionDelay(yLineTransitionFunction);
 }

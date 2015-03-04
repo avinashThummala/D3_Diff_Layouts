@@ -56,8 +56,6 @@ function mouseOnNode(node) {
 
 function deleteCCLayoutChart(newVizType) {
 
-  console.log("Into Delete CCLayout Chart");
-
   d3.selectAll("line")
     .remove();
 
@@ -79,8 +77,6 @@ function deleteCCLayoutChart(newVizType) {
 
 function addLines() {
 
-  console.log("Into add lines");
-
   gLines
     .selectAll("line")
     .data(linkedGraph.links)
@@ -94,8 +90,6 @@ function addLines() {
 }
 
 function drawCCLayoutChart() {
-
-  console.log("Into Draw CCLayout Chart");                        
 
   gTexts
     .selectAll("text")
@@ -130,7 +124,5 @@ function drawCCLayoutChart() {
     .transition()
     .duration(tDuration)
     .attr("cy", function(d) { return (d.y-textHeight/2) });    
-
-  console.log(linkedGraph.nodes);
 
 }

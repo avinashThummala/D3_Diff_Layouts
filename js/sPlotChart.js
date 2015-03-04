@@ -21,8 +21,6 @@ ySPlotTransitionFunction = function(d,i) {
 
 function deleteSPlotChart(newVizType) {
 
-  console.log("Into Delete SPlot Chart");                
-
   d3.selectAll("text")
     .transition()
     .duration(tDuration)
@@ -41,20 +39,12 @@ function deleteSPlotChart(newVizType) {
 
 function updateSPlotChart() {
 
-  console.log("Into Update SPlot Chart"); 
-
   modifySPlotNodeValues();
   updateChart();
-
-  console.log(graph.nodes);        
 }
 
 function drawSPlotChart() {
 
-  console.log("Into Draw SPlot Chart");
-
   modifySPlotNodeValues();
-  drawChartWithTransitionDuration(ySPlotTransitionFunction);
-      
-  console.log(graph.nodes);
+  drawChartWithTransitionDuration(ySPlotTransitionFunction);    
 }
