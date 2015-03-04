@@ -557,9 +557,9 @@
           <label><input id="vLinePosId" type="radio" name="vLinePos" value="eDistant" onclick="startLineVizE()"/>Equidistantly</label>  
           <label><input type="radio" name="vLinePos" value="nonEDistant" onclick="startLineVizNonE()"/>Based On </label>  
 
-          <select id="vLinePosSId"> 
-            <option id="vLinePosSPopId" value="population" onclick="startLineVizNonE()"/ selected>Population</option> 
-            <option value="gdp" onclick="startLineVizNonE()"/>GDP</option>            
+          <select id="vLinePosSId" onchange="startLineVizNonE()"> 
+            <option id="vLinePosSPopId" value="population" selected>Population</option> 
+            <option value="gdp">GDP</option>            
           </select> 
 
         </span>        
@@ -583,9 +583,9 @@
 
         <span>Sort by:
 
-          <select id="vCLayoutPosSId"> 
-            <option id="vClayoutPosSPopId" value="population" onclick="startCLayoutViz()"/ selected>Population</option> 
-            <option value="gdp" onclick="startCLayoutViz()"/>GDP</option>            
+          <select id="vCLayoutPosSId" onchange="startCLayoutViz()"> 
+            <option id="vClayoutPosSPopId" value="population" selected>Population</option> 
+            <option value="gdp">GDP</option>            
           </select>
 
           <input id="vCLayoutGId" type="checkbox" name="vCLayout" value="gContinent" onclick="startCLayoutViz()"/>Group by Continent
