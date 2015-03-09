@@ -597,9 +597,22 @@
       <div id="vGLayoutDiv">
 
         <span>
-          <label><input id="vFLayoutId" type="radio" name="fType" value="normal" onclick="startFLayoutViz()"/>Force Layout 1</label>   
-          <label><input id="vFLayoutHId" type="radio" name="fType" value="horizontal" onclick="startFLayoutViz()"/>Force Layout 2</label>
-          <label><input type="radio" name="fType" value="circular" onclick="startFLayoutViz()"/>Force Layout 3</label>  
+
+          <label>
+            <input id="vFLayoutId" type="radio" name="fType" value="normal" onclick="startFLayoutViz()"/>
+            Move Foci to the Center
+          </label>   
+
+          <label>
+            <input id="vFLayoutHId" type="radio" name="fType" value="horizontal" onclick="startFLayoutViz()"/>
+            Move Foci using an Ordinal Scale
+          </label>
+
+          <label>
+            <input type="radio" name="fType" value="circular" onclick="startFLayoutViz()"/>
+            Move Foci using a Pie Layout
+          </label>  
+
         </span>
 
       </div>              

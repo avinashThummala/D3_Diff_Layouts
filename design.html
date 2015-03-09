@@ -12,6 +12,8 @@
 
     <script>
 
+      var legendXMargin=10, legendYMargin=3, legendTextMargin=5;
+
       var completeData, vizData, dataDict={}, nameDict={}, fullCNameList=[], fullCIdList=[], pYear,
         selectedIds=[], selectedNames=[];
 
@@ -72,6 +74,38 @@
           .attr("width", width+margin.left+margin.right)
           .attr("height", height+margin.top+margin.bottom);
 
+        //Draw Legend
+
+        var legendY = (margin.top-legendYMargin-2*rDimension)/2
+
+        svg.append("rect")
+          .attr("width", rDimension)
+          .attr("height", rDimension)
+          .attr("fill", minValColor )
+          .attr("x", legendXMargin)
+          .attr("y", legendY);
+
+        svg.append("text")
+          .text('Min Val')
+          .style("font-size", aTextFont+'pt')
+          .attr("x", legendXMargin+rDimension+legendTextMargin)
+          .attr("y", legendY+rDimension);          
+
+        svg.append("rect")
+          .attr("width", rDimension)
+          .attr("height", rDimension)
+          .attr("fill", maxValColor )
+          .attr("x", legendXMargin)
+          .attr("y", legendY+legendYMargin+rDimension);
+
+        svg.append("text")
+          .text('Max Val')
+          .style("font-size", aTextFont+'pt')
+          .attr("x", legendXMargin+rDimension+legendTextMargin)
+          .attr("y", legendY+legendYMargin+2*rDimension);
+
+        //Draw Axes                              
+
         gRects = svg.append("g")
           .attr("transform", "translate("+margin.left+","+margin.top+")");
 
@@ -88,6 +122,8 @@
           .call(yAxis)
           .selectAll("text")  
           .style("font-size", aTextFont+'pt');
+
+        //Draw Squares          
 
         updateSvg();          
 
