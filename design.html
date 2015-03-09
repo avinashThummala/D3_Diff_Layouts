@@ -12,7 +12,7 @@
 
     <script>
 
-      var legendXMargin=10, legendYMargin=3, legendTextMargin=5;
+      var legendXMargin=10, legendYMargin=3, legendTextMargin=5, minValText='Min Export Value', maxValText='Max Export Value';
 
       var completeData, vizData, dataDict={}, nameDict={}, fullCNameList=[], fullCIdList=[], pYear,
         selectedIds=[], selectedNames=[];
@@ -86,7 +86,7 @@
           .attr("y", legendY);
 
         svg.append("text")
-          .text('Min Val')
+          .text(minValText)
           .style("font-size", aTextFont+'pt')
           .attr("x", legendXMargin+rDimension+legendTextMargin)
           .attr("y", legendY+rDimension);          
@@ -99,7 +99,7 @@
           .attr("y", legendY+legendYMargin+rDimension);
 
         svg.append("text")
-          .text('Max Val')
+          .text(maxValText)
           .style("font-size", aTextFont+'pt')
           .attr("x", legendXMargin+rDimension+legendTextMargin)
           .attr("y", legendY+legendYMargin+2*rDimension);
